@@ -1,11 +1,16 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../domain/entities/file_item_entity.dart';
+import '../../domain/usecases/pick_files_usecase.dart';
 import 'transfer_event.dart';
 import 'transfer_state.dart';
 
 class TransferBloc extends Bloc<TransferEvent, TransferState> {
-  TransferBloc() : super(const TransferInitial()) {
-    on<PickFiles>((event, emit) => emit(const FilePicking()));
+  TransferBloc(this._pickFilesUseCase) : super(const TransferInitial()) {
+    on<PickFiles>(_onPickFiles);
+    on<FilesPicked>(_onFilesPicked);
+    on<RemoveSelectedFile>(_onRemoveSelectedFile);
+    on<ClearSelectedFiles>(_onClearSelectedFiles);
     on<StartSenderServer>(
       (event, emit) => emit(SenderServerRunning(files: state.files)),
     );
@@ -48,5 +53,68 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
         ),
       ),
     );
+  }
+
+  final PickFilesUseCase _pickFilesUseCase;
+
+  Future<void> _onPickFiles(
+    PickFiles event,
+    Emitter<TransferState> emit,
+  ) async {
+    final currentFiles = state.files;
+    emit(FilePicking(files: currentFiles));
+
+    try {
+      final pickedFiles = await _pickFilesUseCase(
+        allowMultiple: event.allowMultiple,
+      );
+      if (pickedFiles.isEmpty) {
+        emit(
+          currentFiles.isEmpty
+              ? const TransferInitial()
+              : FilesSelected(files: currentFiles),
+        );
+        return;
+      }
+
+      add(FilesPicked([...currentFiles, ...pickedFiles]));
+    } catch (_) {
+      emit(
+        TransferFailure(
+          'Could not pick files. Please try again.',
+          files: currentFiles,
+        ),
+      );
+    }
+  }
+
+  void _onFilesPicked(FilesPicked event, Emitter<TransferState> emit) {
+    emit(FilesSelected(files: _deduplicateFiles(event.files)));
+  }
+
+  void _onRemoveSelectedFile(
+    RemoveSelectedFile event,
+    Emitter<TransferState> emit,
+  ) {
+    final files = state.files
+        .where((file) => file.id != event.fileId)
+        .toList(growable: false);
+
+    emit(files.isEmpty ? const TransferInitial() : FilesSelected(files: files));
+  }
+
+  void _onClearSelectedFiles(
+    ClearSelectedFiles event,
+    Emitter<TransferState> emit,
+  ) {
+    emit(const TransferInitial());
+  }
+
+  List<FileItemEntity> _deduplicateFiles(List<FileItemEntity> files) {
+    final filesById = <String, FileItemEntity>{};
+    for (final file in files) {
+      filesById[file.id] = file;
+    }
+    return filesById.values.toList(growable: false);
   }
 }

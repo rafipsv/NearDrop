@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 
+import '../../domain/entities/file_item_entity.dart';
 import '../../domain/entities/transfer_progress_entity.dart';
 import '../../domain/entities/transfer_session_entity.dart';
 
@@ -11,7 +12,34 @@ abstract class TransferEvent extends Equatable {
 }
 
 class PickFiles extends TransferEvent {
-  const PickFiles();
+  const PickFiles({this.allowMultiple = true});
+
+  final bool allowMultiple;
+
+  @override
+  List<Object?> get props => [allowMultiple];
+}
+
+class FilesPicked extends TransferEvent {
+  const FilesPicked(this.files);
+
+  final List<FileItemEntity> files;
+
+  @override
+  List<Object?> get props => [files];
+}
+
+class RemoveSelectedFile extends TransferEvent {
+  const RemoveSelectedFile(this.fileId);
+
+  final String fileId;
+
+  @override
+  List<Object?> get props => [fileId];
+}
+
+class ClearSelectedFiles extends TransferEvent {
+  const ClearSelectedFiles();
 }
 
 class StartSenderServer extends TransferEvent {

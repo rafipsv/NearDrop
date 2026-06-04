@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../core/constants/app_constants.dart';
-import '../../../../core/mock/mock_data.dart';
 import '../../../../core/widgets/responsive_gap.dart';
 import '../../../../core/widgets/section_panel.dart';
 import '../../../../core/widgets/status_chip.dart';
+import '../bloc/transfer_bloc.dart';
+import '../bloc/transfer_state.dart';
+import 'file_picker_empty_state.dart';
+import 'file_selection_summary.dart';
 import 'mock_qr_code.dart';
 import 'selected_file_tile.dart';
 
@@ -42,16 +46,25 @@ class QrSendContent extends StatelessWidget {
           ),
         ),
         const VerticalGap(16),
-        SectionPanel(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Sharing 3 files', style: textTheme.titleMedium),
-              const VerticalGap(8),
-              for (final file in MockData.selectedFiles)
-                SelectedFileTile(file: file),
-            ],
-          ),
+        BlocBuilder<TransferBloc, TransferState>(
+          builder: (context, state) {
+            if (state.files.isEmpty) {
+              return const SectionPanel(child: FilePickerEmptyState());
+            }
+
+            return SectionPanel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Sharing files', style: textTheme.titleMedium),
+                  const VerticalGap(4),
+                  FileSelectionSummary(files: state.files),
+                  const VerticalGap(8),
+                  for (final file in state.files) SelectedFileTile(file: file),
+                ],
+              ),
+            );
+          },
         ),
       ],
     );

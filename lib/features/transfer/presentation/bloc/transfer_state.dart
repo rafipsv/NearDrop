@@ -20,7 +20,7 @@ class TransferInitial extends TransferState {
 }
 
 class FilePicking extends TransferState {
-  const FilePicking();
+  const FilePicking({super.files});
 }
 
 class FilesSelected extends TransferState {
