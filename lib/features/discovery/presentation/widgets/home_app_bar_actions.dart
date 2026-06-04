@@ -15,6 +15,11 @@ class HomeAppBarActions extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
+          tooltip: 'History',
+          onPressed: () => context.go(AppRoutes.history),
+          icon: const Icon(Icons.history_rounded),
+        ),
+        IconButton(
           tooltip: 'Toggle theme',
           onPressed: () => context.read<ThemeBloc>().add(const ToggleTheme()),
           icon: const Icon(Icons.contrast_rounded),

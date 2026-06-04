@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'discovery_scan_area.dart';
 import 'discovery_status_text.dart';
 import 'home_action_bar.dart';
+import 'receive_status_panel.dart';
 
 class HomeContent extends StatelessWidget {
   const HomeContent({super.key});
@@ -17,7 +18,9 @@ class HomeContent extends StatelessWidget {
           children: [
             const Expanded(child: DiscoveryScanArea()),
             const DiscoveryStatusText(),
-            SizedBox(height: 20.h),
+            SizedBox(height: 14.h),
+            const ReceiveStatusPanel(),
+            SizedBox(height: 18.h),
             const HomeActionBar(),
           ],
         ),

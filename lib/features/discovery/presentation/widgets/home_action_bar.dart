@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../../core/router/app_routes.dart';
 
 class HomeActionBar extends StatelessWidget {
   const HomeActionBar({super.key});
@@ -10,7 +13,7 @@ class HomeActionBar extends StatelessWidget {
       children: [
         Expanded(
           child: FilledButton.icon(
-            onPressed: () {},
+            onPressed: () => context.go(AppRoutes.files),
             icon: const Icon(Icons.upload_file_rounded),
             label: const Text('Send files'),
           ),
@@ -18,7 +21,7 @@ class HomeActionBar extends StatelessWidget {
         SizedBox(width: 12.w),
         IconButton.filledTonal(
           tooltip: 'QR fallback',
-          onPressed: () {},
+          onPressed: () => context.go(AppRoutes.qrScan),
           icon: const Icon(Icons.qr_code_2_rounded),
         ),
       ],

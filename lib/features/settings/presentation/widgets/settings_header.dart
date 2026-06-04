@@ -19,7 +19,7 @@ class SettingsHeader extends StatelessWidget {
         ),
         SizedBox(height: 4.h),
         Text(
-          'No cloud backend. Files stay on your local network.',
+          'Premium local transfer UI for same Wi-Fi sharing.',
           style: TextStyle(color: colorScheme.onSurfaceVariant),
         ),
       ],

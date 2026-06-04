@@ -20,12 +20,22 @@ class SettingsContent extends StatelessWidget {
         const SettingsOptionTile(
           icon: Icons.phone_iphone_rounded,
           title: 'Device name',
-          subtitle: 'Configured in a later setup phase',
+          subtitle: "Muhammad's iPhone",
         ),
         const SettingsOptionTile(
           icon: Icons.folder_rounded,
           title: 'Storage location',
           subtitle: 'Local downloads folder',
+        ),
+        const SettingsOptionTile(
+          icon: Icons.cloud_off_rounded,
+          title: 'Privacy',
+          subtitle: 'No cloud upload or external storage server',
+        ),
+        const SettingsOptionTile(
+          icon: Icons.info_outline_rounded,
+          title: 'About',
+          subtitle: 'NearDrop mock UI - Phase 2',
         ),
       ],
     );
