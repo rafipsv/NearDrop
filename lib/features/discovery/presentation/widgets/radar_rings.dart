@@ -46,7 +46,7 @@ class _RadarRingsPainter extends CustomPainter {
     const ringCount = 4;
     final radiusGap = (maxRadius - strokeWidth) / ringCount;
 
-    for (var index = 1; index <= ringCount; index++) {
+    for (var index = 2; index <= ringCount; index++) {
       ringPaint.color = index == ringCount ? outerColor : innerColor;
       canvas.drawCircle(center, radiusGap * index, ringPaint);
     }

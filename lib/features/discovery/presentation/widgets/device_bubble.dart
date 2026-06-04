@@ -9,25 +9,34 @@ class DeviceBubble extends StatelessWidget {
   const DeviceBubble({
     super.key,
     required this.device,
-    required this.animationValue,
+    required this.highlightValue,
     required this.onTap,
   });
 
   final MockNearbyDevice device;
-  final double animationValue;
+  final double highlightValue;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final color = Color(device.colorValue);
-    final floatOffset = 5.h * animationValue;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final highlightColor = isDark
+        ? Color.lerp(color, Colors.white, 0.36)!
+        : Color.lerp(color, Colors.white, 0.08)!;
+    final glowOpacity = (isDark ? 0.4 : 0.34) + (highlightValue * 0.72);
+    final glowBlur = 18.r + (highlightValue * (isDark ? 32.r : 34.r));
+    final borderWidth = 1.2.r + (highlightValue * (isDark ? 3.6.r : 4.r));
+    final borderOpacity = (isDark ? 0.34 : 0.34) + (highlightValue * 0.74);
 
-    return Transform.translate(
-      offset: Offset(0, floatOffset),
-      child: GestureDetector(
-        onTap: onTap,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return GestureDetector(
+      onTap: onTap,
+      child: SizedBox(
+        width: 58.r,
+        height: 58.r,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
           children: [
             AnimatedContainer(
               duration: const Duration(milliseconds: 250),
@@ -36,35 +45,54 @@ class DeviceBubble extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: color,
+                border: Border.all(
+                  color: highlightColor.withValues(alpha: borderOpacity),
+                  width: borderWidth,
+                ),
                 boxShadow: [
                   BoxShadow(
-                    color: color.withValues(alpha: 0.32),
-                    blurRadius: 18.r,
+                    color: highlightColor.withValues(alpha: glowOpacity),
+                    blurRadius: glowBlur,
                     offset: Offset(0, 8.h),
                   ),
+                  if (highlightValue > 0)
+                    BoxShadow(
+                      color: highlightColor.withValues(
+                        alpha: highlightValue * (isDark ? 0.5 : 0.46),
+                      ),
+                      blurRadius: isDark ? 52.r : 54.r,
+                      spreadRadius: isDark ? 6.r : 7.r,
+                    ),
                 ],
               ),
               child: Icon(_platformIcon, color: Colors.white, size: 26.r),
             ),
-            SizedBox(height: 8.h),
-            ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: 92.w),
-              child: Text(
-                device.name,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(
-                  context,
-                ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
-              ),
-            ),
-            SizedBox(height: 2.h),
-            Text(
-              _statusLabel,
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                color: _statusColor(context),
-                fontSize: 10.sp,
+            Positioned(
+              top: 66.h,
+              child: SizedBox(
+                width: 96.w,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      device.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    SizedBox(height: 2.h),
+                    Text(
+                      _statusLabel,
+                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: _statusColor(context),
+                        fontSize: 10.sp,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],

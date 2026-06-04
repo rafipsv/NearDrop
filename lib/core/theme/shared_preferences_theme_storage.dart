@@ -16,7 +16,8 @@ class SharedPreferencesThemeStorage implements ThemeStorage {
     return switch (value) {
       'light' => ThemeMode.light,
       'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
+      'system' => ThemeMode.system,
+      _ => ThemeMode.dark,
     };
   }
 

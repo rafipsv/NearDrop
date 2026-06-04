@@ -18,80 +18,78 @@ class DiscoveryScanArea extends StatefulWidget {
 }
 
 class _DiscoveryScanAreaState extends State<DiscoveryScanArea>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller;
+    with TickerProviderStateMixin {
+  late final AnimationController _sweepController;
+  late final AnimationController _orbitController;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    _sweepController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 6),
+    )..repeat();
+    _orbitController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 96),
     )..repeat();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    _sweepController.dispose();
+    _orbitController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Center(
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: 420.w),
         child: AspectRatio(
           aspectRatio: 1,
           child: AnimatedBuilder(
-            animation: _controller,
+            animation: Listenable.merge([_sweepController, _orbitController]),
             builder: (context, child) {
               final size = 420.w;
+              final sweepAngle = _sweepController.value * math.pi * 2;
               return Stack(
                 alignment: Alignment.center,
                 children: [
-                  RadarRings(sweepAngle: _controller.value * 6.28318),
-                  for (final device in MockData.nearbyDevices)
+                  RadarRings(sweepAngle: sweepAngle),
+                  for (final indexedDevice in MockData.nearbyDevices.indexed)
                     Transform.translate(
                       offset: Offset(
-                        (size * device.orbitFactor) * math.cos(device.angle),
-                        (size * device.orbitFactor) * math.sin(device.angle),
+                        (size * indexedDevice.$2.orbitFactor) *
+                            math.cos(
+                              _driftAngle(
+                                indexedDevice.$2.angle,
+                                indexedDevice.$1,
+                              ),
+                            ),
+                        (size * indexedDevice.$2.orbitFactor) *
+                            math.sin(
+                              _driftAngle(
+                                indexedDevice.$2.angle,
+                                indexedDevice.$1,
+                              ),
+                            ),
                       ),
                       child: DeviceBubble(
-                        device: device,
-                        animationValue: math.sin(
-                          (_controller.value * 6.28318) + device.angle,
+                        device: indexedDevice.$2,
+                        highlightValue: _highlightValue(
+                          sweepAngle,
+                          _driftAngle(indexedDevice.$2.angle, indexedDevice.$1),
                         ),
-                        onTap: () => _showDeviceSheet(device),
+                        onTap: () => _showDeviceSheet(indexedDevice.$2),
                       ),
                     ),
                   child!,
                 ],
               );
             },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const AppLogo(size: 88),
-                SizedBox(height: 18.h),
-                Text('Searching nearby', style: textTheme.titleLarge),
-                SizedBox(height: 8.h),
-                SizedBox(
-                  width: 220.w,
-                  child: Text(
-                    'Make sure both devices are on the same Wi-Fi.',
-                    textAlign: TextAlign.center,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 11.sp,
-                      height: 1.25,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+            child: const Center(child: AppLogo(size: 88)),
           ),
         ),
       ),
@@ -104,5 +102,21 @@ class _DiscoveryScanAreaState extends State<DiscoveryScanArea>
       showDragHandle: false,
       builder: (context) => DeviceActionSheet(device: device),
     );
+  }
+
+  double _driftAngle(double baseAngle, int index) {
+    final direction = index.isEven ? 1 : -1;
+    return baseAngle + (_orbitController.value * math.pi * 2 * direction);
+  }
+
+  double _highlightValue(double sweepAngle, double deviceAngle) {
+    const highlightRange = 0.52;
+    final distance = _angleDistance(sweepAngle, deviceAngle);
+    return (1 - (distance / highlightRange)).clamp(0, 1);
+  }
+
+  double _angleDistance(double firstAngle, double secondAngle) {
+    final difference = (firstAngle - secondAngle).abs() % (math.pi * 2);
+    return difference > math.pi ? (math.pi * 2) - difference : difference;
   }
 }
