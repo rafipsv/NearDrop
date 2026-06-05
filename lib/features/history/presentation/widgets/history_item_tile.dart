@@ -11,40 +11,111 @@ class HistoryItemTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final statusColor = item.success ? colorScheme.tertiary : colorScheme.error;
+    final directionIcon = item.direction == 'Sent'
+        ? Icons.north_east_rounded
+        : Icons.south_west_rounded;
 
-    return ListTile(
-      contentPadding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 6.h),
-      leading: CircleAvatar(
-        radius: 23.r,
-        backgroundColor: statusColor.withValues(alpha: 0.12),
-        child: Icon(
-          item.direction == 'Sent'
-              ? Icons.north_east_rounded
-              : Icons.south_west_rounded,
-          color: statusColor,
-        ),
-      ),
-      title: Text(item.fileName, maxLines: 1, overflow: TextOverflow.ellipsis),
-      subtitle: Text(
-        '${item.direction} to ${item.deviceName} - ${item.timeLabel}',
-      ),
-      trailing: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.end,
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 8.h),
+      child: Row(
         children: [
-          Text(
-            item.fileSize,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w700),
+          Container(
+            width: 48.r,
+            height: 48.r,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: statusColor.withValues(alpha: 0.12),
+              border: Border.all(color: statusColor.withValues(alpha: 0.18)),
+            ),
+            child: Icon(directionIcon, color: statusColor, size: 22.r),
           ),
-          SizedBox(height: 4.h),
-          Text(
-            item.status,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(color: statusColor),
+          SizedBox(width: 12.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.fileName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 5.h),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.devices_rounded,
+                      size: 14.r,
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                    SizedBox(width: 5.w),
+                    Expanded(
+                      child: Text(
+                        '${item.direction} to ${item.deviceName}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 3.h),
+                Text(
+                  item.timeLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.labelMedium?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 10.w),
+          ConstrainedBox(
+            constraints: BoxConstraints(minWidth: 76.w),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  item.fileSize,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                SizedBox(height: 7.h),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(999.r),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 8.w,
+                      vertical: 4.h,
+                    ),
+                    child: Text(
+                      item.status,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: textTheme.labelMedium?.copyWith(
+                        color: statusColor,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
