@@ -9,21 +9,31 @@ class MockQrCode extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      width: 220.r,
-      height: 220.r,
-      padding: EdgeInsets.all(14.r),
+      width: 232.r,
+      height: 232.r,
+      padding: EdgeInsets.all(10.r),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface.withValues(alpha: 0.74),
         borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.46),
+        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.primary.withValues(alpha: 0.16),
-            blurRadius: 24.r,
-            offset: Offset(0, 12.h),
+            color: colorScheme.primary.withValues(alpha: 0.22),
+            blurRadius: 30.r,
+            offset: Offset(0, 16.h),
           ),
         ],
       ),
-      child: CustomPaint(painter: _MockQrPainter()),
+      child: Container(
+        padding: EdgeInsets.all(14.r),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(8.r),
+        ),
+        child: CustomPaint(painter: _MockQrPainter()),
+      ),
     );
   }
 }

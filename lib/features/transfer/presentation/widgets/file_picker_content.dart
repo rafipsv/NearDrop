@@ -167,7 +167,7 @@ class FilePickerContent extends StatelessWidget {
                       Expanded(
                         child: FilledButton.icon(
                           onPressed: hasFiles
-                              ? () => context.go(AppRoutes.qrSend)
+                              ? () => context.push(AppRoutes.qrSend)
                               : null,
                           icon: const Icon(Icons.wifi_tethering_rounded),
                           label: const Text('Start sharing'),
