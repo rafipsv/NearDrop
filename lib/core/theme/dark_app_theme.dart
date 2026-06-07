@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class DarkAppTheme {
   static const _seed = Color(0xFF4DD9FF);
@@ -15,7 +16,7 @@ class DarkAppTheme {
       brightness: Brightness.dark,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: const Color(0xFF0D1117),
-      textTheme: _textTheme(),
+      textTheme: GoogleFonts.interTextTheme(_textTheme()),
       appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(

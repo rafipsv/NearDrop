@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LightAppTheme {
   static const _seed = Color(0xFF246BFD);
@@ -15,7 +16,7 @@ class LightAppTheme {
       brightness: Brightness.light,
       colorScheme: colorScheme,
       scaffoldBackgroundColor: const Color(0xFFF7F9FC),
-      textTheme: _textTheme(),
+      textTheme: GoogleFonts.interTextTheme(_textTheme()),
       appBarTheme: const AppBarTheme(centerTitle: false, elevation: 0),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
