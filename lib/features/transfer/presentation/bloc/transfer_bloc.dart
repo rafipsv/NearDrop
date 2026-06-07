@@ -1,9 +1,12 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../domain/entities/file_item_entity.dart';
+import '../../domain/usecases/download_from_qr_payload_usecase.dart';
 import '../../domain/usecases/pick_files_usecase.dart';
 import '../../domain/usecases/start_sender_server_usecase.dart';
 import '../../domain/usecases/stop_sender_server_usecase.dart';
+import '../../domain/value_objects/qr_transfer_payload.dart';
+import '../../domain/value_objects/receiver_transfer_exception.dart';
 import 'transfer_event.dart';
 import 'transfer_state.dart';
 
@@ -12,6 +15,7 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
     this._pickFilesUseCase,
     this._startSenderServerUseCase,
     this._stopSenderServerUseCase,
+    this._downloadFromQrPayloadUseCase,
   ) : super(const TransferInitial()) {
     on<PickFiles>(_onPickFiles);
     on<FilesPicked>(_onFilesPicked);
@@ -24,6 +28,7 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
     on<StartDownload>(
       (event, emit) => emit(TransferReady(session: event.session)),
     );
+    on<StartQrDownload>(_onStartQrDownload);
     on<UpdateTransferProgress>(
       (event, emit) => emit(
         state.session == null
@@ -46,6 +51,7 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
   final PickFilesUseCase _pickFilesUseCase;
   final StartSenderServerUseCase _startSenderServerUseCase;
   final StopSenderServerUseCase _stopSenderServerUseCase;
+  final DownloadFromQrPayloadUseCase _downloadFromQrPayloadUseCase;
 
   Future<void> _onPickFiles(
     PickFiles event,
@@ -155,6 +161,34 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
     emit(TransferCancelled(files: state.files, session: state.session));
   }
 
+  Future<void> _onStartQrDownload(
+    StartQrDownload event,
+    Emitter<TransferState> emit,
+  ) async {
+    await _stopSenderServerUseCase();
+    emit(const ReceiverPreparing());
+
+    try {
+      await emit.forEach(
+        _downloadFromQrPayloadUseCase(event.rawPayload),
+        onData: (update) => update.isComplete
+            ? TransferSuccess(session: update.session)
+            : TransferInProgress(
+                session: update.session,
+                progress: update.progress,
+              ),
+        onError: (error, _) => TransferFailure(
+          _downloadErrorMessage(error),
+          files: state.files,
+          session: state.session,
+          progress: state.progress,
+        ),
+      );
+    } catch (error) {
+      emit(TransferFailure(_downloadErrorMessage(error)));
+    }
+  }
+
   Future<void> _onRetryTransfer(
     RetryTransfer event,
     Emitter<TransferState> emit,
@@ -206,6 +240,12 @@ class TransferBloc extends Bloc<TransferEvent, TransferState> {
     return files
         .map((file) => file.copyWith(downloadUrl: ''))
         .toList(growable: false);
+  }
+
+  String _downloadErrorMessage(Object error) {
+    if (error is QrTransferPayloadException) return error.message;
+    if (error is ReceiverTransferException) return error.message;
+    return 'Could not receive files from this QR code.';
   }
 
   @override

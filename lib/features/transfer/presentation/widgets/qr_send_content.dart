@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/utils/file_size_formatter.dart';
@@ -11,9 +12,9 @@ import '../bloc/transfer_bloc.dart';
 import '../bloc/transfer_event.dart';
 import '../bloc/transfer_state.dart';
 import '../../domain/entities/transfer_session_entity.dart';
+import '../../domain/value_objects/qr_transfer_payload.dart';
 import 'file_picker_empty_state.dart';
 import 'file_selection_summary.dart';
-import 'mock_qr_code.dart';
 import 'selected_file_tile.dart';
 
 class QrSendContent extends StatelessWidget {
@@ -173,7 +174,7 @@ class _QrSendHero extends StatelessWidget {
                     height: 190.r,
                     child: const Center(child: CircularProgressIndicator()),
                   )
-                : const MockQrCode(),
+                : _SessionQrCode(session: session),
             if (metadataUrl != null) ...[
               const VerticalGap(14),
               _MetadataLink(url: metadataUrl),
@@ -236,6 +237,67 @@ class _QrSendHero extends StatelessWidget {
   String? _metadataUrl(TransferSessionEntity? session) {
     if (session == null) return null;
     return 'http://${session.senderDevice.ipAddress}:${session.senderDevice.port}/session/${session.sessionId}';
+  }
+}
+
+class _SessionQrCode extends StatelessWidget {
+  const _SessionQrCode({required this.session});
+
+  final TransferSessionEntity? session;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final payload = _payload(session);
+
+    if (payload == null) {
+      return Container(
+        width: 190.r,
+        height: 190.r,
+        decoration: BoxDecoration(
+          color: colorScheme.surface.withValues(alpha: 0.78),
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+          ),
+        ),
+        child: Icon(
+          Icons.qr_code_2_rounded,
+          color: colorScheme.onSurfaceVariant,
+          size: 92.r,
+        ),
+      );
+    }
+
+    return Container(
+      padding: EdgeInsets.all(12.r),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.22)),
+      ),
+      child: QrImageView(
+        data: payload.encode(),
+        version: QrVersions.auto,
+        size: 190.r,
+        errorCorrectionLevel: QrErrorCorrectLevel.M,
+        backgroundColor: Colors.white,
+        eyeStyle: const QrEyeStyle(color: Colors.black),
+        dataModuleStyle: const QrDataModuleStyle(color: Colors.black),
+      ),
+    );
+  }
+
+  QrTransferPayload? _payload(TransferSessionEntity? session) {
+    if (session == null) return null;
+    return QrTransferPayload(
+      sessionId: session.sessionId,
+      deviceName: session.senderDevice.name,
+      ipAddress: session.senderDevice.ipAddress,
+      port: session.senderDevice.port,
+      metadataUrl:
+          'http://${session.senderDevice.ipAddress}:${session.senderDevice.port}/session/${session.sessionId}',
+    );
   }
 }
 

@@ -7,10 +7,15 @@ import 'features/transfer/data/datasources/file_picker_data_source.dart';
 import 'features/transfer/data/datasources/file_picker_data_source_impl.dart';
 import 'features/transfer/data/datasources/local_sender_server_data_source.dart';
 import 'features/transfer/data/datasources/local_sender_server_data_source_impl.dart';
+import 'features/transfer/data/datasources/receiver_transfer_data_source.dart';
+import 'features/transfer/data/datasources/receiver_transfer_data_source_impl.dart';
 import 'features/transfer/data/repositories/file_selection_repository_impl.dart';
+import 'features/transfer/data/repositories/receiver_transfer_repository_impl.dart';
 import 'features/transfer/data/repositories/sender_server_repository_impl.dart';
 import 'features/transfer/domain/repositories/file_selection_repository.dart';
+import 'features/transfer/domain/repositories/receiver_transfer_repository.dart';
 import 'features/transfer/domain/repositories/sender_server_repository.dart';
+import 'features/transfer/domain/usecases/download_from_qr_payload_usecase.dart';
 import 'features/transfer/domain/usecases/pick_files_usecase.dart';
 import 'features/transfer/domain/usecases/start_sender_server_usecase.dart';
 import 'features/transfer/domain/usecases/stop_sender_server_usecase.dart';
@@ -41,10 +46,17 @@ Future<void> configureDependencies() async {
     ..registerLazySingleton<SenderServerRepository>(
       () => SenderServerRepositoryImpl(sl()),
     )
+    ..registerLazySingleton<ReceiverTransferDataSource>(
+      () => const ReceiverTransferDataSourceImpl(),
+    )
+    ..registerLazySingleton<ReceiverTransferRepository>(
+      () => ReceiverTransferRepositoryImpl(sl()),
+    )
     ..registerLazySingleton(() => PickFilesUseCase(sl()))
     ..registerLazySingleton(() => StartSenderServerUseCase(sl()))
     ..registerLazySingleton(() => StopSenderServerUseCase(sl()))
+    ..registerLazySingleton(() => DownloadFromQrPayloadUseCase(sl()))
     ..registerFactory(() => ThemeBloc(sl())..add(const LoadTheme()))
     ..registerFactory(() => DiscoveryBloc())
-    ..registerFactory(() => TransferBloc(sl(), sl(), sl()));
+    ..registerFactory(() => TransferBloc(sl(), sl(), sl(), sl()));
 }

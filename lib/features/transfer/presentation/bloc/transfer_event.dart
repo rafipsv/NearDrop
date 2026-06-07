@@ -64,6 +64,15 @@ class StartDownload extends TransferEvent {
   List<Object?> get props => [session];
 }
 
+class StartQrDownload extends TransferEvent {
+  const StartQrDownload(this.rawPayload);
+
+  final String rawPayload;
+
+  @override
+  List<Object?> get props => [rawPayload];
+}
+
 class UpdateTransferProgress extends TransferEvent {
   const UpdateTransferProgress(this.progress);
 
