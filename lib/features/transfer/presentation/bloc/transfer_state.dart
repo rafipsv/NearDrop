@@ -31,6 +31,10 @@ class SenderServerRunning extends TransferState {
   const SenderServerRunning({required super.files});
 }
 
+class SenderServerStarting extends TransferState {
+  const SenderServerStarting({required super.files});
+}
+
 class TransferReady extends TransferState {
   TransferReady({required TransferSessionEntity session})
     : super(session: session, files: session.files);

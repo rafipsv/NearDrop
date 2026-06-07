@@ -8,8 +8,9 @@ import '../../../../core/widgets/responsive_gap.dart';
 import '../../../../core/widgets/section_panel.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../bloc/transfer_bloc.dart';
+import '../bloc/transfer_event.dart';
 import '../bloc/transfer_state.dart';
-import '../../domain/entities/file_item_entity.dart';
+import '../../domain/entities/transfer_session_entity.dart';
 import 'file_picker_empty_state.dart';
 import 'file_selection_summary.dart';
 import 'mock_qr_code.dart';
@@ -29,7 +30,7 @@ class QrSendContent extends StatelessWidget {
       children: [
         BlocBuilder<TransferBloc, TransferState>(
           builder: (context, state) {
-            return _QrSendHero(files: state.files, isDark: isDark);
+            return _QrSendHero(state: state, isDark: isDark);
           },
         ),
         const VerticalGap(20),
@@ -82,17 +83,22 @@ class QrSendContent extends StatelessWidget {
 }
 
 class _QrSendHero extends StatelessWidget {
-  const _QrSendHero({required this.files, required this.isDark});
+  const _QrSendHero({required this.state, required this.isDark});
 
-  final List<FileItemEntity> files;
+  final TransferState state;
   final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final files = state.files;
+    final session = state.session;
+    final metadataUrl = _metadataUrl(session);
     final totalBytes = files.fold<int>(0, (total, file) => total + file.size);
     final totalLabel = FileSizeFormatter.formatBytes(totalBytes);
+    final isStarting = state is SenderServerStarting;
+    final isReady = session != null;
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -148,7 +154,9 @@ class _QrSendHero extends StatelessWidget {
                       ),
                       const VerticalGap(4),
                       Text(
-                        '${AppConstants.appName} on 192.168.0.105:8080',
+                        isReady
+                            ? '${AppConstants.appName} on ${session.senderDevice.ipAddress}:${session.senderDevice.port}'
+                            : 'Preparing local sharing link',
                         style: textTheme.bodyMedium?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -159,7 +167,17 @@ class _QrSendHero extends StatelessWidget {
               ],
             ),
             const VerticalGap(20),
-            const MockQrCode(),
+            isStarting
+                ? SizedBox(
+                    width: 190.r,
+                    height: 190.r,
+                    child: const Center(child: CircularProgressIndicator()),
+                  )
+                : const MockQrCode(),
+            if (metadataUrl != null) ...[
+              const VerticalGap(14),
+              _MetadataLink(url: metadataUrl),
+            ],
             const VerticalGap(18),
             Row(
               children: [
@@ -186,9 +204,11 @@ class _QrSendHero extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const StatusChip(
-                  label: 'Waiting for receiver',
-                  icon: Icons.hourglass_top_rounded,
+                StatusChip(
+                  label: isReady ? 'Server running' : 'Starting server',
+                  icon: isReady
+                      ? Icons.wifi_tethering_rounded
+                      : Icons.hourglass_top_rounded,
                 ),
                 const HorizontalGap(8),
                 StatusChip(
@@ -198,7 +218,51 @@ class _QrSendHero extends StatelessWidget {
                 ),
               ],
             ),
+            if (isReady) ...[
+              const VerticalGap(14),
+              OutlinedButton.icon(
+                onPressed: () =>
+                    context.read<TransferBloc>().add(const CancelTransfer()),
+                icon: const Icon(Icons.stop_circle_rounded),
+                label: const Text('Stop sharing'),
+              ),
+            ],
           ],
+        ),
+      ),
+    );
+  }
+
+  String? _metadataUrl(TransferSessionEntity? session) {
+    if (session == null) return null;
+    return 'http://${session.senderDevice.ipAddress}:${session.senderDevice.port}/session/${session.sessionId}';
+  }
+}
+
+class _MetadataLink extends StatelessWidget {
+  const _MetadataLink({required this.url});
+
+  final String url;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
+      decoration: BoxDecoration(
+        color: colorScheme.surface.withValues(alpha: 0.68),
+        borderRadius: BorderRadius.circular(8.r),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.18)),
+      ),
+      child: SelectableText(
+        url,
+        textAlign: TextAlign.center,
+        style: textTheme.bodySmall?.copyWith(
+          color: colorScheme.primary,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
